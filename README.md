@@ -1,3 +1,6 @@
+PLEASE NOTE: The freight code (⁠app.py⁠) in this repository is NOT a finished system, and it is not meant to be a complete product. I know it is unfinished. It is here strictly as a working demonstration to prove that my concept works: that a person can use unscripted, natural conversation to turn complex logic directly into a working system using standard, off-the-shelf AI, without having to write code by hand or build extra software layers.
+
+
 # Linguistic Systems Architecture: Structural Mechanics of Non-Linear Logic Mapping and Asynchronous Cognitive Prosthetics
 
 **Author Framework:** Strategic Architecture Input Vector (User Account Session Log Profile)  
