@@ -1,4 +1,14 @@
-PLEASE NOTE: The freight code (⁠app.py⁠) in this repository is NOT a finished system, and it is not meant to be a complete product. I know it is unfinished. It is here strictly as a working demonstration to prove that my concept works: that a person can use unscripted, natural conversation to turn complex logic directly into a working system using standard, off-the-shelf AI, without having to write code by hand or build extra software layers.
+> **NOTICE ON OPERATIONAL PROOF OF CONCEPT:**  
+> The freight clearinghouse backend (`app.py`) is an **intentional, unfinished architectural demonstration**—not a production-ready commercial release. It exists strictly as timestamped, functional proof that a complete operational backend can be compiled from unscripted, non-linear spoken logic in a single 45-to-120-minute session using off-the-shelf AI, without manual code authoring, traditional developer toolchains, or middleware.
+
+### Linguistic Systems Architecture vs. Obsolete Voice Coding
+
+* **Voice Coding (Obsolete):** Using voice as a slow mechanical keyboard to dictate code line by line (e.g., *"define function get_id, open parenthesis..."*). It keeps the human trapped in low-level syntax.
+* **Prompt Engineering (Superficial):** Tweaking text queries to produce code snippets, basic scripts, or toy apps.
+* **Linguistic Systems Compilation (This Methodology):** The architect speaks pure, non-linear domain reality—real-world business rules, operational bottlenecks, gate checks, and state handoffs. The AI acts strictly as an execution compiler, translating live spoken logic directly into an executable, multi-state system backend.
+
+---
+
 
 
 # Linguistic Systems Architecture: Structural Mechanics of Non-Linear Logic Mapping and Asynchronous Cognitive Prosthetics
