@@ -1,0 +1,264 @@
+"""
+=============================================================================
+STATUS: PROOF-OF-CONCEPT PROTOTYPE / WORKING DRAFT
+=============================================================================
+This script demonstrates the functional mechanics and operational logic of
+the Linguistic Receiving Clearinghouse. It validates the core concept:
+1. In-browser audio and barcode ingestion
+2. Whisper-based transcription pipeline
+3. Deterministic zero-temperature JSON extraction (GPT-4o-mini)
+4. Automated reconciliation against receiving manifests
+
+NOTE: This is NOT a production-hardened release. It utilizes an in-memory mock 
+database and basic session handlers specifically to demonstrate architectural 
+feasibility. Production deployments require persistent databases, JWT auth, 
+and enterprise rate-limiting.
+=============================================================================
+"""
+
+import os
+import json
+import tempfile
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.responses import HTMLResponse
+from openai import OpenAI
+
+app = FastAPI(title="Linguistic Receiving Clearinghouse Prototype")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Mock Database of Pending Shipments
+MOCK_DATABASE = {
+    "ORD-9941": {"expected_pin": "589", "expected_pallets": 20},
+    "ORD-1002": {"expected_pin": "123", "expected_pallets": 10}
+}
+
+# Cross-Browser Web Interface (HTML + Camera QR Scanner + Voice Recorder)
+HTML_INTERFACE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Linguistic Receiving Dock Interface</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 500px; margin: auto; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn-scan { background: #007bff; color: white; }
+        .btn-record { background: #28a745; color: white; }
+        .btn-submit { background: #17a2b8; color: white; }
+        input { width: 100%; padding: 10px; margin: 5px 0 15px 0; box-sizing: border-box; font-size: 16px; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 5px; display: none; font-weight: bold; }
+        .GREEN { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .RED { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Dock Receiving Portal</h2>
+        
+        <label><b>1. Order ID:</b></label>
+        <input type="text" id="order_id" value="ORD-9941" placeholder="Scan or enter Order ID">
+        
+        <button class="btn-scan" onclick="startScanner()">📷 Scan Barcode / QR</button>
+        <div id="reader" style="width: 100%; display: none;"></div>
+
+        <label><b>2. Speak Voice Receipt:</b></label>
+        <button id="recordBtn" class="btn-record" onclick="toggleRecording()">🎙️ Start Recording Voice</button>
+        <p id="recordingStatus" style="color: #666; font-size: 14px;"></p>
+
+        <button class="btn-submit" onclick="submitReceipt()">🚀 Submit to Clearinghouse</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob = null;
+        let html5QrCode;
+        let selectedMimeType = '';
+
+        function startScanner() {
+            document.getElementById('reader').style.display = 'block';
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                (decodedText) => {
+                    document.getElementById('order_id').value = decodedText;
+                    html5QrCode.stop();
+                    document.getElementById('reader').style.display = 'none';
+                }
+            );
+        }
+
+        function getSupportedMimeType() {
+            const types = [
+                'audio/webm;codecs=opus',
+                'audio/webm',
+                'audio/ogg;codecs=opus',
+                'audio/mp4',
+                'audio/aac'
+            ];
+            return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+        }
+
+        async function toggleRecording() {
+            const btn = document.getElementById('recordBtn');
+            const status = document.getElementById('recordingStatus');
+
+            if (!mediaRecorder || mediaRecorder.state === "inactive") {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                selectedMimeType = getSupportedMimeType();
+                
+                mediaRecorder = selectedMimeType 
+                    ? new MediaRecorder(stream, { mimeType: selectedMimeType })
+                    : new MediaRecorder(stream);
+                    
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: selectedMimeType || 'audio/webm' });
+                    status.innerText = "Voice recording captured!";
+                };
+
+                mediaRecorder.start();
+                btn.innerText = "🛑 Stop Recording";
+                btn.style.background = "#dc3545";
+                status.innerText = "Recording... Say: 'Code 589. 20 pallets received in good condition.'";
+            } else {
+                mediaRecorder.stop();
+                btn.innerText = "🎙️ Record Again";
+                btn.style.background = "#28a745";
+            }
+        }
+
+        async function submitReceipt() {
+            const orderId = document.getElementById('order_id').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!audioBlob) {
+                alert("Please record a voice note first.");
+                return;
+            }
+
+            resultDiv.style.display = "block";
+            resultDiv.className = "";
+            resultDiv.innerText = "Processing audio through AI engine...";
+
+            const ext = audioBlob.type.includes('mp4') ? 'mp4' : 
+                        audioBlob.type.includes('ogg') ? 'ogg' : 'webm';
+
+            const formData = new FormData();
+            formData.append("order_id", orderId);
+            formData.append("audio_file", audioBlob, `receipt.${ext}`);
+
+            const response = await fetch("/api/v1/linguistic-receive", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            resultDiv.className = data.status;
+            resultDiv.innerHTML = `
+                <h3>Status: ${data.status}</h3>
+                <p><b>Reason:</b> ${data.reason}</p>
+                <p><b>Detail:</b> ${data.detail}</p>
+                <hr>
+                <small><b>Raw Transcript:</b> "${data.raw_transcript}"</small>
+            `;
+        }
+    </script>
+</body>
+</html>
+"""
+
+@app.get("/", response_class=HTMLResponse)
+async def serve_interface():
+    return HTML_INTERFACE
+
+@app.post("/api/v1/linguistic-receive")
+async def process_voice_receipt(order_id: str = Form(...), audio_file: UploadFile = File(...)):
+    if order_id not in MOCK_DATABASE:
+        raise HTTPException(status_code=404, detail="Order ID not found.")
+    
+    shipment = MOCK_DATABASE[order_id]
+    
+    # 1. Secure Temp File Creation in System Directory
+    ext = audio_file.filename.split('.')[-1] if '.' in audio_file.filename else 'webm'
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as temp_audio:
+        temp_audio.write(await audio_file.read())
+        temp_filename = temp_audio.name
+
+    try:
+        # 2. Speech-to-Text Conversion via Whisper
+        with open(temp_filename, "rb") as f:
+            transcription = client.audio.transcriptions.create(model="whisper-1", file=f)
+        raw_text = transcription.text
+
+        # 3. Tightened Entity Extraction Prompt with Zero Temperature
+        prompt = f"""
+        Extract JSON from this receipt audio transcript:
+        "{raw_text}"
+
+        Rules for extraction:
+        1. "spoken_pin": Extract all spoken digits as a continuous numerical string with no spaces, words, or dashes (e.g. "589", "123").
+        2. "received_count": The TOTAL physical pallets delivered to the dock, regardless of condition (integer).
+        3. "has_damage": Set to true if any cargo damage or issues are mentioned (boolean).
+        4. "damaged_count": The number of pallets damaged OUT OF the total received count (integer, default 0).
+
+        Required fields:
+        - "spoken_pin": string or null
+        - "received_count": integer or 0
+        - "has_damage": boolean
+        - "damaged_count": integer or 0
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            temperature=0.0,
+            response_format={"type": "json_object"},
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        extracted = json.loads(response.choices[0].message.content)
+
+        # 4. Audit Engine Verification Logic
+        # Check 1: PIN Authentication
+        if str(extracted.get("spoken_pin")) != shipment["expected_pin"]:
+            return {
+                "status": "RED",
+                "reason": "AUTHENTICATION_FAILED",
+                "detail": f"Spoken PIN '{extracted.get('spoken_pin')}' does not match expected '{shipment['expected_pin']}'.",
+                "raw_transcript": raw_text
+            }
+
+        # Check 2: Physical Count Reconciliation & Damage Flags
+        total_delivered = extracted.get("received_count", 0)
+        has_damage = extracted.get("has_damage", False)
+        damaged_qty = extracted.get("damaged_count", 0)
+
+        if total_delivered != shipment["expected_pallets"] or has_damage:
+            return {
+                "status": "RED",
+                "reason": "DISCREPANCY_FLAGGED",
+                "detail": f"Expected {shipment['expected_pallets']} pallets. Delivered: {total_delivered} total ({damaged_qty} damaged).",
+                "raw_transcript": raw_text
+            }
+
+        # Clean Pass
+        return {
+            "status": "GREEN",
+            "reason": "AUTO_APPROVED",
+            "detail": "PIN authenticated. Physical counts match baseline. Zero damage reported.",
+            "raw_transcript": raw_text
+        }
+
+    finally:
+        # Guarantee Cleanup from System Temp Storage
+        if os.path.exists(temp_filename):
+            os.remove(temp_filename)
