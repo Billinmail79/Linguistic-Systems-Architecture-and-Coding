@@ -1,3 +1,6 @@
+Built entirely on an iPhone 16 Plus with zero coding experience, using pure conversational logic and voice-driven development to assemble functional software infrastructure without writing a single line of manual code.
+
+
 > **NOTICE ON OPERATIONAL PROOF OF CONCEPT:**  
 > The freight clearinghouse backend (`app.py`) is an **intentional, unfinished architectural demonstration**—not a production-ready commercial release. It exists strictly as timestamped, functional proof that a complete operational backend can be compiled from unscripted, non-linear spoken logic in a single 45-to-120-minute session using off-the-shelf AI, without manual code authoring, traditional developer toolchains, or middleware.
 
