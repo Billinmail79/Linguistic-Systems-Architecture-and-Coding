@@ -1,6 +1,15 @@
 Built entirely on an iPhone 16 Plus with zero coding experience, using pure conversational logic and voice-driven development to assemble functional software infrastructure without writing a single line of manual code.
 
 
+
+4. Critical Distinction: Linguistic Systems Compilation vs. Vibecoding
+
+It is vital to distinguish Linguistic Systems Architecture (LSA) from the superficial trend of "vibecoding":
+• Vibecoding (Passive Outsourcing): The user provides a vague, conversational request (e.g., "build me a workout tracker") and allows the neural network to guess the architecture, rules, and database logic. The user has no understanding of the system parameters and exercises zero structural control.
+• Linguistic Systems Compilation (Active Architecture): The user acts as a rigorous systems architect, explicitly dictating precise mathematical thresholds, operational constraints, and multi-vector boundaries (e.g., hardcoding a 30-day half-life decay parameter at 0.5, setting routine vocabulary dampening triggers at 0.35, and enforcing strict len(distinct_categories) >= 3 convergence gates). The AI does not guess the logic; it acts strictly as a high-speed macro-compiler translating precise, spoken domain rules into an executable software matrix.
+
+
+
 > **NOTICE ON OPERATIONAL PROOF OF CONCEPT:**  
 > The freight clearinghouse backend (`app.py`) is an **intentional, unfinished architectural demonstration**—not a production-ready commercial release. It exists strictly as timestamped, functional proof that a complete operational backend can be compiled from unscripted, non-linear spoken logic in a single 45-to-120-minute session using off-the-shelf AI, without manual code authoring, traditional developer toolchains, or middleware.
 
