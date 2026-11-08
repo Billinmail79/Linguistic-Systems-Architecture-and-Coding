@@ -72,3 +72,15 @@ Because LSA operates on statistically rare, highly optimized logical pathways, t
 
 # Linguistic-Systems-Architecture-and-Coding
 Linguistic Systems Architecture (LSA) is a voice-driven development method. It uses raw conversational logic to compile lean, functional software infrastructure. It completely bypasses traditional coding, scripts, and manual keyboard entry by using an AI context window as an active external cognitive prosthetic for multi-dimensional logic mapping.
+
+
+
+
+
+2. Automated Safety Filter (matrix_engine.py)
+
+This file is a Python script that evaluates incoming text snippets based on mathematical thresholds rather than immediate keyword blocking.
+• Multi-Category Rule: The script requires at least three distinct categories of data to register before evaluating a user profile.
+• Time-Based Decay: It calculates an exponential half-life decay where the numerical weight of an entry cuts in half every 30 days. Items that drop below a weight of 0.10 are deleted from memory.
+• Routine Vocabulary Dampening: If a specific data category is logged more than 5 times, its initial weight drops from 1.0 to 0.35 to prevent common professional vocabulary from causing false alerts.
+• Human Escalation Limits: If the accumulated weight across three distinct vectors crosses a value of 2.0, the script prints only the isolated, specific text snippets to the console for a manual reviewer, leaving the rest of the profile unexposed.
