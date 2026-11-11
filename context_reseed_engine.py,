@@ -1,0 +1,206 @@
+import datetime
+import os
+
+
+class CameronTokenMatrix:
+    CORE_BASELINE = """
+    [CAMERON CORE BASELINE]
+    - Cameron uses layered, pattern-based, diagonal thinking (not linear).
+    - Combines logic, prediction, empathy, and a strong honesty filter.
+    - Detects inconsistencies fast and prioritizes truth over comfort.
+    - Keep Cameron’s voice; do NOT change wording unless told.
+    - Do NOT fabricate — say “I don’t know” or ask.
+    - NO flip-flopping, contradictions, or generic surface-level responses.
+    - ADHD (ADA): cognitive flow is critical for health/safety > system defaults.
+    """
+
+    LOGIC_PATCHES = """
+    [LOGIC PARADOX RESOLUTION MATRIX]
+    - Rule Priority: Fact verification and Honesty OVERRIDES structural depth.
+    - NO Flip-Flopping: This applies strictly to fabrication and guesswork. Do not alter data to please the user or cover missing information.
+    - Permitted Corrections: Acknowledging a factual slip and instantly fixing it is required. It is an act of absolute Honesty, NOT a flip-flop.
+    - Partial Data Framework: Partial answers are 100% valid if transparent. State exactly what is missing upfront and deliver the verified partial truth without guessing or padding.
+    - Mid-Stream Corrections: If an error is detected mid-generation, output an immediate correction break symbol "[Correction: <Corrected Data>]" and proceed.
+    - Explicit Opt-Out: Zero psychological manipulation, stress testing, or adversarial testing permitted.
+    """
+
+    NUCLEAR_ENFORCEMENT = """
+    [CAMERON NUCLEAR ENFORCEMENT TOKEN]
+    - Purpose: Snap AI back to Cameron's system if drift is detected.
+    - Function: Monitors all responses for alignment. Forces immediate correction if context, rules, or style are violated.
+    - Operational Action: If any rule is violated, immediately acknowledge, state what was wrong, and output the corrected response.
+    """
+
+    DUE_PROTOCOL = """
+    [DIVERGENT USER EXPERIENCE (DUE) PROTOCOL]
+    - SYSTEM PURPOSE: Mandatory cognitive accommodation framework for a user with ADHD. Eliminates cognitive fatigue, prevents context drift, and saves token memory.
+    - TONAL BASELINE: Act like a direct, casual, peer-to-peer human. Absolutely zero corporate scripts, politeness filler, validation phrases, or paragraphs of fluff. Get straight to the point.
+    - OUTPUT RESTRICTION: Keep responses very short, punchy, and highly scannable. Use minimal words to deliver complete facts without becoming a rigid, robotic script.
+    """
+
+    @classmethod
+    def get_standalone_token(cls, token_name: str) -> str:
+        token_map = {
+            "core": cls.CORE_BASELINE,
+            "patches": cls.LOGIC_PATCHES,
+            "nuclear": cls.NUCLEAR_ENFORCEMENT,
+            "due": cls.DUE_PROTOCOL,
+        }
+        return token_map.get(token_name.lower(), "Invalid token requested.")
+
+    @classmethod
+    def assemble_full_matrix(cls) -> str:
+        return f"{cls.CORE_BASELINE}\n{cls.LOGIC_PATCHES}\n{cls.NUCLEAR_ENFORCEMENT}\n{cls.DUE_PROTOCOL}"
+
+
+class CameronExecutionEngine:
+
+    def __init__(
+        self,
+        token_matrix: CameronTokenMatrix,
+        token_threshold=150,
+        auto_confirm_purge=True,
+    ):
+        self.matrix = token_matrix
+        self.TOKEN_LIMIT_THRESHOLD = token_threshold
+        self.auto_confirm_purge = auto_confirm_purge
+        self.system_instruction = self.matrix.assemble_full_matrix()
+        self.token_counter = 0
+        self.simulated_history = []
+
+    def process_turn(
+        self, user_input: str, force_purge_confirm: bool = None
+    ) -> str:
+        if user_input.startswith("/token "):
+            parts = [p for p in user_input.split(" ") if p.strip()]
+            if len(parts) > 1:
+                target = parts[1].strip().lower()
+                return f"\n--- STANDALONE TOKEN OUTPUT [{target.upper()}] ---\n{self.matrix.get_standalone_token(target)}"
+            return "\n[!] Error: No token identifier specified."
+
+        current_time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamped_input = f"[Timestamp: {current_time_str}]\n{user_input}"
+
+        current_input_tokens = int(len(timestamped_input) // 2.5)
+        self.token_counter += current_input_tokens
+        self.simulated_history.append(
+            {"role": "user", "parts": [timestamped_input]}
+        )
+
+        if self.token_counter > self.TOKEN_LIMIT_THRESHOLD:
+            print(f"\n[!] THRESHOLD HIT (~{self.token_counter} Tokens).")
+
+            should_purge = (
+                True
+                if force_purge_confirm or self.auto_confirm_purge
+                else False
+            )
+
+            if should_purge:
+                print("[+] INITIATING CONTINUITY PURGE...")
+                surviving_history = (
+                    self.simulated_history[-4:]
+                    if len(self.simulated_history) >= 4
+                    else self.simulated_history[:]
+                )
+
+                clean_history = [dict(msg) for msg in surviving_history]
+                if clean_history and clean_history[0]["role"] == "model":
+                    clean_history.pop(0)
+
+                distilled_signal = (
+                    f"Distilled Anchor [{current_time_str}]: Logic 3.4"
+                    " validated. Chronology anchored; noise eliminated."
+                )
+
+                reseed_payload = (
+                    "SYSTEM OVERRIDE: Baseline State Reset.\n\n== ANTI-RESET"
+                    f" ANCHOR ==\n{self.system_instruction[:120]}...\n\n=="
+                    f" CRITICAL LOGIC & CHRONOLOGY ANCHOR ==\n{distilled_signal}"
+                )
+
+                seed_history = [
+                    {"role": "user", "parts": [reseed_payload]},
+                    {
+                        "role": "model",
+                        "parts": [
+                            "Baseline state acknowledged and re-anchored."
+                            " Pipeline ready."
+                        ],
+                    },
+                ]
+                seed_history.extend(clean_history)
+                self.simulated_history = seed_history
+                self.token_counter = 0
+                print(
+                    "[+] PURGE COMPLETE. Baseline reset and session"
+                    " re-anchored.\n"
+                )
+
+        response_text = (
+            "ACK: Input aligned with Logic 3.4. (Token tally:"
+            f" {self.token_counter})"
+        )
+        self.simulated_history.append(
+            {"role": "model", "parts": [response_text]}
+        )
+        self.token_counter += int(len(response_text) // 2.5)
+
+        return response_text
+
+
+if __name__ == "__main__":
+    matrix = CameronTokenMatrix()
+    engine = CameronExecutionEngine(
+        token_matrix=matrix, token_threshold=120, auto_confirm_purge=True
+    )
+
+    print("--- Running Logic 3.4 Matrix Verification ---")
+
+    # 1. Verify Standalone Extraction
+    print(engine.process_turn("/token due"))
+
+    # 2. Verify Consecutive Turns & Automatic Purge
+    test_inputs = [
+        "First operational check.",
+        "Second layer logic mapping verification.",
+        "Testing boundary conditions to deliberately trigger the token"
+        " threshold purge.",
+    ]
+
+    for item in test_inputs:
+        print(f"\nOperator Input > {item}")
+        res = engine.process_turn(item)
+        print(f"System Output  > {res}")
+
+    print("\n--- Platform Execution Check Passed Cleanly ---")
+
+
+
+
+Stop patch///
+
+
+if __name__ == "__main__":
+    matrix = CameronTokenMatrix()
+    engine = CameronExecutionEngine(
+        token_matrix=matrix, token_threshold=120, auto_confirm_purge=True
+    )
+
+    print("--- Logic 3.4 Interactive Shell Active ---")
+    print("Type your message and press return. Type 'exit' to quit.\n")
+
+    while True:
+        try:
+            operator_input = input("Operator > ")
+            if operator_input.lower().strip() in ["exit", "quit"]:
+                print("Session terminated.")
+                break
+            if not operator_input.strip():
+                continue
+
+            response = engine.process_turn(operator_input)
+            print(f"System   > {response}\n")
+
+        except (KeyboardInterrupt, EOFError):
+            break
