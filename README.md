@@ -93,3 +93,56 @@ This file is a Python script that evaluates incoming text snippets based on math
 • Time-Based Decay: It calculates an exponential half-life decay where the numerical weight of an entry cuts in half every 30 days. Items that drop below a weight of 0.10 are deleted from memory.
 • Routine Vocabulary Dampening: If a specific data category is logged more than 5 times, its initial weight drops from 1.0 to 0.35 to prevent common professional vocabulary from causing false alerts.
 • Human Escalation Limits: If the accumulated weight across three distinct vectors crosses a value of 2.0, the script prints only the isolated, specific text snippets to the console for a manual reviewer, leaving the rest of the profile unexposed.
+
+
+
+# Logic 3.4 Matrix Environment & Context Reseeding Engine
+## Automated Out-of-Band Memory Management & Simulation Shell
+
+### Classification: Assistive Technology / Cognitive Prosthetic
+**Developer:** Cameron Blacklock
+**Methodology:** Linguistic Systems Architecture (LSA)
+**Year:** 2026
+**System Status:** Functional Test Bench / Simulation Active
+
+---
+
+## 1. System Architectural Intent
+The Logic 3.4 Matrix Environment is an execution test bench engineered to solve the legacy "sliding window" drop-off defect found in modern web APIs. Traditional context architectures suffer from memory blindness or truncation once a session hits its token capacity limit. 
+
+This architecture implements a proactive, out-of-band context distillation pass. By tracking internal token volume in real time, the engine halts the trailing window, compresses raw logical rules and chronological anchors, and automatically reseeds a fresh session container before context drift can occur.
+
+---
+
+## 2. Development Methodology: Linguistic Systems Architecture (LSA)
+This codebase was engineered entirely using **Linguistic Systems Architecture (LSA)**—a top-down, voice-driven compilation workflow designed for non-linear cognitive processing. 
+
+* **Intent-Driven Compilation:** Rather than relying on slow, line-by-line manual syntax entry, the system architecture was defined verbally using real-time conditional logic, structural constraints, and boundary parameters.
+* **Zero-Latency Execution:** The AI model operated strictly as a deterministic macro-compiler ("the hands"), translating spoken domain rules into executable Python code while the human architect ("the brains") directed the structural layout and audited logic loops live.
+
+---
+
+## 3. Core Functional Pillars
+* **Cameron Token Matrix:** Establishes the static, non-negotiable operational baseline. Houses the `CORE_BASELINE`, the `LOGIC_PATCHES` paradox resolution matrix, the `NUCLEAR_ENFORCEMENT` alignment monitor, and the `DUE_PROTOCOL` (Divergent User Experience) framework.
+* **Automated Out-of-Band Purge:** Intercepts session telemetry the exact millisecond the token tally crosses the user-defined threshold (`TOKEN_LIMIT_THRESHOLD`). It strips out conversational noise, extracts verified variables, and resets the baseline state cleanly.
+* **Interactive Simulation Shell:** Provides a localized, standalone runtime console loop to verify logical state consistency, interrupt-loop handling, and boundary integrity completely offline.
+
+---
+
+## 4. Deployment Parameters
+To execute the matrix verification pipeline or initialize the interactive terminal environment, run the primary Python module directly:
+
+```bash
+python framework_engine.py
+```
+
+### Supported Runtime Commands
+* `/token <core/patches/nuclear/due>`: Extracts a raw standalone logic block directly from the token matrix without incrementing execution weight.
+* `exit` or `quit`: Terminates the active simulated history container cleanly.
+
+---
+
+## 5. Legal Protections & Civil Rights Boundary
+This software architecture, database logic, and instruction framework are designed and implemented strictly as an essential accessibility accommodation prosthetic under the Americans with Disabilities Act (ADA) for a non-linear cognitive processing style (ADHD). 
+
+Unauthorized commercialization, telemetry harvesting, scraping, or utilization of this intellectual property for corporate training ingestion pools is strictly prohibited. The human creator retains 100% exclusive sovereignty and ownership over the execution, logic, and implementation pathways of this environment.
